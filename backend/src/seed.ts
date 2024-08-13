@@ -1,14 +1,9 @@
 import { drizzle } from 'drizzle-orm/node-postgres';
 import { migrate } from 'drizzle-orm/node-postgres/migrator';
 import { Pool } from 'pg';
-import * as schema from './schema';
-import { users, problems, testCases, submissions } from './schema';
-
-const pool = new Pool({
-    connectionString: process.env.DATABASE_URL,
-});
-
-const db = drizzle(pool, { schema });
+import * as schema from './models/schema';
+import { users, problems, testCases, submissions } from './models/schema';
+import { db } from './db';
 
 async function seed() {
     // Seed users (unchanged)
@@ -119,15 +114,15 @@ async function seed() {
     console.log('Seed data inserted successfully');
 }
 
-async function main() {
-    console.log('Migrating and seeding database...');
-    await migrate(db, { migrationsFolder: './drizzle' });
-    await seed();
-    console.log('Migration and seeding completed.');
-    process.exit(0);
-}
+export async function seeding() {
+    try {
 
-main().catch((err) => {
-    console.error('An error occurred:', err);
-    process.exit(1);
-});
+        console.log('Migrating and seeding database...');
+        await migrate(db, { migrationsFolder: './../database/migrations' });
+        await seed();
+        console.log('Migration and seeding completed.');
+        return true
+    } catch (err: any) {
+        return false
+    }
+}

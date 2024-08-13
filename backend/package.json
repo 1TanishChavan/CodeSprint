@@ -9,8 +9,7 @@
     "build": "tsc && tsc-alias",
     "db:introspect": "drizzle-kit introspect",
     "db:generate": "drizzle-kit generate",
-    "db:migrate": "drizzle-kit migrate",
-    "db:seed": "ts-node src/models/seed.ts"
+    "db:migrate": "drizzle-kit migrate"
   },
   "keywords": [],
   "author": "",
