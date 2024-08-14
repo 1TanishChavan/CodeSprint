@@ -1,26 +1,28 @@
-import React, { useEffect, useState } from 'react';
-import api from '../api'; 
-
-interface Submission {
-  id: number;
-  problemId: number;
-  problemTitle: string
-  status: string;
-  language: string;
-  createdAt: string;
-}
+import React, { useEffect, useState } from "react";
+import api from "../api";
+import useAuthStore from "../store/useStore";
+import { Submission } from "../types";
+// interface Submission {
+//   id: number;
+//   problemId: number;
+//   problemTitle: string;
+//   status: string;
+//   language: string;
+//   createdAt: string;
+// }
 
 const Dashboard: React.FC = () => {
+  const { user } = useAuthStore();
   const [submissions, setSubmissions] = useState<Submission[]>([]);
 
   useEffect(() => {
     const fetchSubmissions = async () => {
       try {
-        const token = localStorage.getItem('token');
-        const response = await api.get('/user/dashboard');
+        const token = localStorage.getItem("token");
+        const response = await api.get("/user/dashboard");
         setSubmissions(response.data);
       } catch (error) {
-        console.error('Error fetching submissions:', error);
+        console.error("Error fetching submissions:", error);
       }
     };
 
@@ -47,7 +49,9 @@ const Dashboard: React.FC = () => {
                 <td className="py-2 px-4">{submission.problemTitle}</td>
                 <td className="py-2 px-4">{submission.status}</td>
                 <td className="py-2 px-4">{submission.language}</td>
-                <td className="py-2 px-4">{new Date(submission.createdAt).toLocaleString()}</td>
+                <td className="py-2 px-4">
+                  {new Date(submission.submittedAt).toLocaleString()}
+                </td>
               </tr>
             ))}
           </tbody>

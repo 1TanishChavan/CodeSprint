@@ -1,45 +1,35 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import api from '../api';
-
-interface User {
-  id: number;
-  name: string;
-  email: string;
-}
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import api from "../api";
+import useAppStore from "../store/useStore";
+import InputBox from "../components/InputBox";
+import Button from "../components/Button";
+import ErrorMessage from "../components/ErrorMessage";
 
 const ProfileEdit: React.FC = () => {
-  const [user, setUser] = useState<User | null>(null);
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [error, setError] = useState('');
+  const { user, setUser } = useAppStore();
+  const [name, setName] = useState(user?.name || "");
+  const [email, setEmail] = useState(user?.email || "");
+  const [error, setError] = useState("");
   const navigate = useNavigate();
 
   useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const response = await api.get<User>('/auth/profile');
-        setUser(response.data);
-        setName(response.data.name);
-        setEmail(response.data.email);
-      } catch (error) {
-        console.error('Error fetching user data:', error);
-        setError('Failed to fetch user data');
-      }
-    };
-
-    fetchUser();
-  }, []);
+    if (user) {
+      setName(user.name);
+      setEmail(user.email);
+    }
+  }, [user]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
+    setError("");
 
     try {
-      await api.put('/auth/profile', { name, email });
-      navigate('/dashboard');
+      const response = await api.put("/auth/profile", { name, email });
+      setUser({ ...user!, name, email }); // Update the user in the global state
+      navigate("/dashboard");
     } catch (error: any) {
-      setError(error.response?.data?.error || 'Failed to update profile');
+      setError(error.response?.data?.error || "Failed to update profile");
     }
   };
 
@@ -50,36 +40,25 @@ const ProfileEdit: React.FC = () => {
   return (
     <div className="container mx-auto px-4 py-8">
       <h1 className="text-3xl font-bold mb-6">Edit Profile</h1>
-      {error && <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">{error}</div>}
+      {error && <ErrorMessage message={error} />}
       <form onSubmit={handleSubmit} className="max-w-md">
-        <div className="mb-4">
-          <label htmlFor="name" className="block mb-2">Name</label>
-          <input
-            type="text"
-            id="name"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            className="w-full p-2 border rounded"
-            required
-          />
-        </div>
-        <div className="mb-4">
-          <label htmlFor="email" className="block mb-2">Email</label>
-          <input
-            type="email"
-            id="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="w-full p-2 border rounded"
-            required
-          />
-        </div>
-        <button
-          type="submit"
-          className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-        >
-          Update Profile
-        </button>
+        <InputBox
+          label="Name"
+          id="name"
+          type="text"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          required
+        />
+        <InputBox
+          label="Email"
+          id="email"
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+        />
+        <Button type="submit">Update Profile</Button>
       </form>
     </div>
   );

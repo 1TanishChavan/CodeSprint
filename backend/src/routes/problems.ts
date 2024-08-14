@@ -50,7 +50,7 @@ router.get('/:id', async (req, res) => {
                 eq(testCases.isPublic, true)
             )
         );
-        res.json({ ...problem[0], publicTestCases });
+        res.json({ ...problem[0], testCases: publicTestCases });
     } catch (error: any) {
         res.status(500).json({ error: 'Failed to fetch problem' });
     }

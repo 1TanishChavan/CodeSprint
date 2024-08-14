@@ -1,24 +1,20 @@
-import React, { useEffect, useState } from 'react';
-import api from '../api'; 
-
-interface User {
-  id: number;
-  name: string;
-  email: string;
-  role: string;
-}
+import React, { useEffect, useState } from "react";
+import api from "../api";
+import useAuthStore from "../store/useStore";
+import { User } from "../types";
 
 const AdminPanel: React.FC = () => {
+  const { user } = useAuthStore();
   const [users, setUsers] = useState<User[]>([]);
 
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        const token = localStorage.getItem('token');
-        const response = await api.get('/admin/users');
+        const token = localStorage.getItem("token");
+        const response = await api.get("/admin/users");
         setUsers(response.data);
       } catch (error) {
-        console.error('Error fetching users:', error);
+        console.error("Error fetching users:", error);
       }
     };
 
@@ -27,13 +23,16 @@ const AdminPanel: React.FC = () => {
 
   const handleRoleChange = async (userId: number, newRole: string) => {
     try {
-      const token = localStorage.getItem('token');
-      await api.put(`/admin/users/${userId}/role`, 
-        { role: newRole }
+      const token = localStorage.getItem("token");
+      await api.put(`/admin/users/${userId}/role`, { role: newRole });
+      setUsers(
+        // @ts-ignore
+        users.map((user) =>
+          user.id === userId ? { ...user, role: newRole } : user
+        )
       );
-      setUsers(users.map(user => user.id === userId ? {...user, role: newRole} : user));
     } catch (error) {
-      console.error('Error updating user role:', error);
+      console.error("Error updating user role:", error);
     }
   };
 
@@ -58,8 +57,8 @@ const AdminPanel: React.FC = () => {
                 <td className="py-2 px-4">{user.email}</td>
                 <td className="py-2 px-4">{user.role}</td>
                 <td className="py-2 px-4">
-                  <select 
-                    value={user.role} 
+                  <select
+                    value={user.role}
                     onChange={(e) => handleRoleChange(user.id, e.target.value)}
                     className="p-1 border rounded dark:bg-gray-700 dark:text-white"
                   >

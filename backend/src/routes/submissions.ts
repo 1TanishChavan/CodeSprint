@@ -5,7 +5,7 @@ import { eq } from 'drizzle-orm';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { authenticateToken } from '../middleware/auth';
 import NodeCache from 'node-cache';
-import { logger } from '../utils/logger'; // Assume we have a logger utility
+import { logger, promptLogger } from '../utils/logger';
 
 const router = express.Router();
 
@@ -16,48 +16,69 @@ const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
 const cache = new NodeCache({ stdTTL: 600, checkperiod: 120 }); // Cache for 10 minutes
 
 async function checkCodeWithGemini(problemTitle: string, problemDescription: string, code: string, language: string, testCases: any[]) {
-    // const model = genAI.getGenerativeModel({ model: "gemini-pro" });
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash", generationConfig: { responseMimeType: "application/json" } });
+    const model = genAI.getGenerativeModel({
+        model: "gemini-1.5-pro",
+        generationConfig: {
+            responseMimeType: "application/json",
+            temperature: 0.3,
+        }
+    });
 
     const prompt = `
     You are a code execution and validation system. Your task is to analyze the following code for the given problem and execute it with multiple sets of inputs, comparing the outputs to the expected outputs.
-
+    
     Problem Title: ${problemTitle}
     Problem Description: ${problemDescription}
-
+    
     Code (${language}):
     ${code}
-
+    
     Test Cases:
     ${testCases.map((tc, index) => `
     Test Case ${index + 1}:
     Input: ${tc.input}
     Expected Output: ${tc.output}
     `).join('\n')}
-
-    For each test case, please provide the following information:
-    1. The actual output produced by the code
-    2. Whether the actual output matches the expected output (true/false)
-    3. If there are any errors in the code execution, please provide the error message
-
+    
+    Important Instructions:
+    1. Verify that the provided code matches the specified language (${language}). If there's a mismatch, report it as an error.
+    2. Execute the code for each test case using the given input.
+    3. Compare the actual output with the expected output. The comparison should be case-sensitive and type-sensitive.
+    4. If there are any errors in the code execution, provide the error message.
+    
+    For each test case, provide the following information:
+    1. The actual output produced by the code on the given input.
+    2. Whether the actual output exactly matches the expected output (true/false).
+    3. Any error messages encountered during execution.
+    
     Return your response in the following JSON format:
     {
-      "results": [
-        {
-          "testCaseId": 1,
-          "actualOutput": "The output produced by the code",
-          "matches": true/false,
-          "error": "Any error message, or null if no errors"
+        "languageCheck": {
+            "specifiedLanguage": "${language}",
+            "actualLanguage": "The language of the provided code",
+            "matches": true/false
         },
-        // ... (for each test case)
-      ]
+        "results": [
+            {
+                "testCaseId": 1,
+                "input": "The input for this test case",
+                "expectedOutput": "The expected output for this test case",
+                "actualOutput": "The output produced by the code",
+                "matches": true/false,
+                "error": "Any error message, or null if no errors"
+            },
+            // ... (for each test case)
+        ]
     }
     `;
 
     try {
+        promptLogger.debug('Gemini Prompt:', { prompt });
         const result = await model.generateContent(prompt);
         const response = result.response;
         const text = response.text();
+
+        promptLogger.debug('Gemini Response:', { response: text });
 
         try {
             return JSON.parse(text);
@@ -99,6 +120,16 @@ router.post('/', authenticateToken, async (req, res) => {
             logger.info("Cache miss, calling Gemini API", { problemId, language });
             // If not in cache, call Gemini API
             const geminiResponse = await checkCodeWithGemini(problem.title, problem.description, code, language, testCasesData);
+
+            // Check for language mismatch
+            const languageCheck = geminiResponse.languageCheck;
+            if (!languageCheck.matches) {
+                return res.status(400).json({
+                    error: 'Language mismatch',
+                    specifiedLanguage: languageCheck.specifiedLanguage,
+                    actualLanguage: languageCheck.actualLanguage
+                });
+            }
 
             // Process Gemini results
             results = geminiResponse.results.map((result: any, index: number) => ({

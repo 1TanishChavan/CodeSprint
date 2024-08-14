@@ -1,5 +1,16 @@
 import winston from 'winston';
 
+export const promptLogger = winston.createLogger({
+    level: 'debug',
+    format: winston.format.combine(
+        winston.format.timestamp(),
+        winston.format.json()
+    ),
+    transports: [
+        new winston.transports.File({ filename: 'prompt.log', level: 'debug' }),
+    ],
+});
+
 export const logger = winston.createLogger({
     level: 'info',
     format: winston.format.combine(

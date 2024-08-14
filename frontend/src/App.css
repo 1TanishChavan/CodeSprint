@@ -36,3 +36,18 @@
     transform: rotate(360deg);
   }
 }
+
+/* Add these styles to ensure consistent input styling */
+input,
+textarea,
+select {
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
+}
+
+/* Ensure smooth transitions for all elements */
+* {
+  transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out,
+    border-color 0.2s ease-in-out;
+}
