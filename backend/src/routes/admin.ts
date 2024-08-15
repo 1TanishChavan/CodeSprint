@@ -25,7 +25,12 @@ const adminAuth = (req: express.Request, res: express.Response, next: express.Ne
 
 router.get('/users', adminAuth, async (req, res) => {
     try {
-        const allUsers = await db.select().from(users);
+        const allUsers = await db.select({
+            id: users.id,
+            name: users.name,
+            email: users.email,
+            role: users.role,
+        }).from(users);
         res.json(allUsers);
     } catch (error: any) {
         res.status(500).json({ error: error.message });

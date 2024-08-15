@@ -68,7 +68,11 @@ async function checkCodeWithGemini(problemTitle: string, problemDescription: str
                 "error": "Any error message, or null if no errors"
             },
             // ... (for each test case)
-        ]
+        ],
+        "suggestion": "Your 2-line suggestion for improving the code",
+        "status": "If all the matches of testcase are true than send Accepted if not than send Failed"
+        "detailedStatus": "A string describing the overall status, including passed and failed test cases"
+
     }
     `;
 
@@ -95,6 +99,27 @@ async function checkCodeWithGemini(problemTitle: string, problemDescription: str
 router.post('/', authenticateToken, async (req, res) => {
     const { problemId, code, language } = req.body;
     const userId = req.user?.userId;
+
+    if (!code.trim()) {
+        return res.status(400).json({
+            message: 'Submission processed',
+            status: 'Failed',
+            error: 'Empty code submission',
+            results: [],
+            suggestion: 'Please write some code before submitting.',
+            detailedStatus: 'Submission failed due to empty code.'
+        });
+    }
+
+    let eva: {
+        status: "Accepted" | "Failed",
+        suggestion: string,
+        detailedStatus: string
+    } = {
+        status: "Failed",
+        suggestion: "",
+        detailedStatus: ""
+    };
 
     if (!userId) {
         return res.status(403).json({ error: 'Unauthorized submission' });
@@ -124,7 +149,7 @@ router.post('/', authenticateToken, async (req, res) => {
             // Check for language mismatch
             const languageCheck = geminiResponse.languageCheck;
             if (!languageCheck.matches) {
-                return res.status(400).json({
+                return res.status(201).json({
                     error: 'Language mismatch',
                     specifiedLanguage: languageCheck.specifiedLanguage,
                     actualLanguage: languageCheck.actualLanguage
@@ -141,6 +166,10 @@ router.post('/', authenticateToken, async (req, res) => {
                 error: result.error,
             }));
 
+            eva.status = geminiResponse.status;
+            eva.detailedStatus = geminiResponse.detailedStatus;
+            eva.suggestion = geminiResponse.suggestion;
+
             // Store in cache
             cache.set(cacheKey, results);
             logger.info("Stored results in cache", { cacheKey });
@@ -150,7 +179,7 @@ router.post('/', authenticateToken, async (req, res) => {
 
         // Determine overall submission status
         // @ts-ignore
-        const status = results.every((r: any) => r.matches) ? 'Accepted' : 'Failed';
+        // const status = results.every((r: any) => r.matches) ? 'Accepted' : 'Failed';
 
         // Save submission to database
         const [newSubmission] = await db.insert(submissions).values({
@@ -158,16 +187,18 @@ router.post('/', authenticateToken, async (req, res) => {
             problemId,
             code,
             language,
-            status,
+            status: eva.status,
         }).returning();
 
-        logger.info("New submission created", { submissionId: newSubmission.id, status });
+        logger.info("New submission created", { submissionId: newSubmission.id, status: eva.status });
 
         res.status(201).json({
             message: 'Submission processed',
             submissionId: newSubmission.id,
-            status,
+            status: eva.status,
             results,
+            suggestion: eva.suggestion,
+            detailedStatus: eva.detailedStatus
         });
     } catch (error: any) {
         logger.error("Error processing submission", { error: error.message, stack: error.stack });

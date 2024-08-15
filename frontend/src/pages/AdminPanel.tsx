@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from "react";
 import api from "../api";
-import useAuthStore from "../store/useStore";
+import useAppStore from "../store/useStore";
 import { User } from "../types";
 
 const AdminPanel: React.FC = () => {
-  const { user } = useAuthStore();
+  const { user } = useAppStore();
   const [users, setUsers] = useState<User[]>([]);
 
   useEffect(() => {

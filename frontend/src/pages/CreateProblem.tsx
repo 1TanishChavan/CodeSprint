@@ -52,7 +52,7 @@ const CreateProblem: React.FC = () => {
         title,
         description,
         difficulty,
-        testCases,
+        test_cases: testCases,
       });
       navigate("/problems");
     } catch (error: any) {
@@ -160,7 +160,7 @@ const CreateProblem: React.FC = () => {
               )}
             </div>
           ))}
-          <Button type="button" onClick={addTestCase}>
+          <Button type="button" onClick={addTestCase} variant="warning">
             Add Test Case
           </Button>
         </div>

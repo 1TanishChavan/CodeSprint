@@ -39,6 +39,7 @@ export interface SubmissionResult {
     actualOutput: string;
     matches: boolean;
     error: string | null;
+    suggestion: string
 }
 
 

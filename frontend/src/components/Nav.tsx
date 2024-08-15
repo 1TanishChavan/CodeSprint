@@ -64,23 +64,24 @@ const Nav: React.FC = () => {
                   Edit Profile
                 </Link>
               </li>
-              {user.role === "creator" && (
-                <li>
-                  <Link
-                    to="/problems/create"
-                    className="hover:text-blue-500 transition-colors"
-                  >
-                    Create Problem
-                  </Link>
-                </li>
-              )}
+              {user.role === "creator" ||
+                (user.role === "admin" && (
+                  <li>
+                    <Link
+                      to="/problems/create"
+                      className="hover:text-blue-500 transition-colors"
+                    >
+                      Create Problem
+                    </Link>
+                  </li>
+                ))}
               {user.role === "admin" && (
                 <li>
                   <Link
                     to="/admin"
                     className="hover:text-blue-500 transition-colors"
                   >
-                    Admin
+                    Users
                   </Link>
                 </li>
               )}
@@ -98,7 +99,7 @@ const Nav: React.FC = () => {
         <div className="flex items-center space-x-4">
           {user && (
             <span className="text-sm text-gray-600 dark:text-gray-300">
-              Welcome, {user.name}
+              {user.name}
             </span>
           )}
           <button

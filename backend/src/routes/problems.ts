@@ -56,15 +56,31 @@ router.get('/:id', async (req, res) => {
     }
 });
 
+// Get a specific problem
+router.get('/edit/:id', async (req, res) => {
+    const { id } = req.params;
+    try {
+        const problem = await db.select().from(problems).where(eq(problems.id, parseInt(id))).limit(1);
+        if (problem.length === 0) {
+            return res.status(404).json({ message: 'Problem not found' });
+        }
+        const publicTestCases = await db.select().from(testCases).where(
+            eq(testCases.problemId, parseInt(id))
+        );
+        res.json({ ...problem[0], testCases: publicTestCases });
+    } catch (error: any) {
+        res.status(500).json({ error: 'Failed to fetch problem' });
+    }
+});
+
 // Create a new problem (only for creators and admins)
 router.post('/', authenticateToken, authorizeRole(['creator', 'admin']), async (req, res) => {
-    const { title, description, difficulty, testCases } = req.body;
+    const { title, description, difficulty, test_cases } = req.body;
     const creatorId = req.user?.userId;
-
     try {
         const [newProblem] = await db.insert(problems).values({ title, description, difficulty, creatorId }).returning();
 
-        const testCasesWithProblemId = testCases.map((tc: any) => ({ ...tc, problemId: newProblem.id }));
+        const testCasesWithProblemId = test_cases.map((tc: any) => ({ ...tc, problemId: newProblem.id }));
         await db.insert(testCases).values(testCasesWithProblemId);
 
         res.status(201).json({ message: 'Problem created successfully', problem: newProblem });

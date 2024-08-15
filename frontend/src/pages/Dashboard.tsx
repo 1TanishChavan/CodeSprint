@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import api from "../api";
-import useAuthStore from "../store/useStore";
+import useAppStore from "../store/useStore";
 import { Submission } from "../types";
 // interface Submission {
 //   id: number;
@@ -12,13 +12,12 @@ import { Submission } from "../types";
 // }
 
 const Dashboard: React.FC = () => {
-  const { user } = useAuthStore();
+  const { user } = useAppStore();
   const [submissions, setSubmissions] = useState<Submission[]>([]);
 
   useEffect(() => {
     const fetchSubmissions = async () => {
       try {
-        const token = localStorage.getItem("token");
         const response = await api.get("/user/dashboard");
         setSubmissions(response.data);
       } catch (error) {

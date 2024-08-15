@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import CodingEnvironment from "../components/CodingEnvironment";
+import Modal from "../components/Modal";
 import api from "../api";
 import useAppStore from "../store/useStore";
 import {
@@ -27,11 +28,13 @@ const ProblemDetail: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [latestSubmission, setLatestSubmission] = useState<{
     status: string;
+    suggestion: string;
+    detailedStatus: string;
     results: SubmissionResult[];
   } | null>(null);
   const [languageMismatch, setLanguageMismatch] =
     useState<LanguageMismatch | null>(null);
-
+  const [showResultsModal, setShowResultsModal] = useState(false);
   useEffect(() => {
     const fetchProblemAndSubmissions = async () => {
       try {
@@ -75,11 +78,18 @@ const ProblemDetail: React.FC = () => {
         actualLanguage: submission.actualLanguage,
       });
       setLatestSubmission(null);
+      setShowResultsModal(true);
     } else {
       setLanguageMismatch(null);
       setLatestSubmission(
-        submission as { status: string; results: SubmissionResult[] }
+        submission as {
+          status: string;
+          suggestion: string;
+          detailedStatus: string;
+          results: SubmissionResult[];
+        }
       );
+      setShowResultsModal(true);
       // @ts-ignore
       setSubmissions((prev) => [
         {
@@ -151,26 +161,36 @@ const ProblemDetail: React.FC = () => {
           </div>
         ))}
       </div>
+
       <CodingEnvironment
         problemId={problem.id}
         onSubmissionComplete={handleSubmissionComplete}
-        user={user}
       />
       {languageMismatch && (
-        <div className="mt-8 p-4 bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700">
-          <p className="font-bold">Language Mismatch Detected</p>
-          <p>You specified: {languageMismatch.specifiedLanguage}</p>
-          <p>Detected language: {languageMismatch.actualLanguage}</p>
-          <p>
-            Please ensure you're using the correct language for your submission.
-          </p>
-        </div>
+        <Modal
+          isOpen={showResultsModal}
+          onClose={() => setShowResultsModal(false)}
+        >
+          <h2 className="text-2xl font-semibold mb-4">Language Mismatch</h2>
+          <p className={`text-lg font-semibold ${"Rejected text-red-500"}`} />
+          <div className="mt-8 p-4 bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700">
+            <p className="font-bold">Language Mismatch Detected</p>
+            <p>You specified: {languageMismatch.specifiedLanguage}</p>
+            <p>Detected language: {languageMismatch.actualLanguage}</p>
+            <p>
+              Please ensure you're using the correct language for your
+              submission.
+            </p>
+          </div>{" "}
+        </Modal>
       )}
+
       {latestSubmission && (
-        <div className="mt-8">
-          <h2 className="text-2xl font-semibold mb-4">
-            Latest Submission Results
-          </h2>
+        <Modal
+          isOpen={showResultsModal}
+          onClose={() => setShowResultsModal(false)}
+        >
+          <h2 className="text-2xl font-semibold mb-4">Submission Results</h2>
           <p
             className={`text-lg font-semibold ${
               latestSubmission.status === "Accepted"
@@ -180,56 +200,32 @@ const ProblemDetail: React.FC = () => {
           >
             Status: {latestSubmission.status}
           </p>
-          <ul className="mt-4 space-y-4">
+          <p className="mt-2">{latestSubmission.detailedStatus}</p>
+          <h3 className="text-xl font-semibold mt-4 mb-2">Suggestion:</h3>
+          <p>{latestSubmission.suggestion}</p>
+          <h3 className="text-xl font-semibold mt-4 mb-2">
+            Test Case Results:
+          </h3>
+          <ul className="mt-2 space-y-2">
             {latestSubmission.results.map((result, index) => (
               <li
                 key={index}
-                className="bg-gray-100 dark:bg-gray-700 p-4 rounded"
+                className="bg-gray-100 dark:bg-gray-700 p-2 rounded"
               >
-                <p className="font-semibold">Test Case {index + 1}</p>
-                <p className="font-mono">Input: {result.input}</p>
-                <p className="font-mono">
-                  Expected Output: {result.expectedOutput}
+                <p>
+                  Test Case {index + 1}: {result.matches ? "Passed" : "Failed"}
                 </p>
-                <p className="font-mono">
-                  Actual Output: {result.actualOutput}
-                </p>
-                <p
-                  className={result.matches ? "text-green-500" : "text-red-500"}
-                >
-                  Matches: {result.matches ? "Yes" : "No"}
-                </p>
-                {result.error && (
-                  <p className="text-red-500">Error: {result.error}</p>
+                {!result.matches && (
+                  <>
+                    <p>Expected: {result.expectedOutput}</p>
+                    <p>Actual: {result.actualOutput}</p>
+                  </>
                 )}
               </li>
             ))}
           </ul>
-        </div>
+        </Modal>
       )}
-      {/* <h2 className="text-2xl font-semibold mt-8 mb-4">Your Submissions</h2>
-      {submissions.length > 0 ? (
-        <table className="w-full border-collapse">
-          <thead>
-            <tr className="bg-gray-200 dark:bg-gray-700">
-              <th className="p-2 text-left">Status</th>
-              <th className="p-2 text-left">Language</th>
-              <th className="p-2 text-left">Submitted At</th>
-            </tr>
-          </thead>
-          <tbody>
-            {submissions.map((submission) => (
-              <tr key={submission.id} className="border-b border-gray-200 dark:border-gray-700">
-                <td className="p-2">{submission.status}</td>
-                <td className="p-2">{submission.language}</td>
-                <td className="p-2">{new Date(submission.submittedAt).toLocaleString()}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      ) : (
-        <p>No submissions yet.</p>
-      )} */}
     </div>
   );
 };

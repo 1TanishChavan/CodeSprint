@@ -7,7 +7,6 @@ import { User } from "../types";
 interface CodingEnvironmentProps {
   problemId: number;
   onSubmissionComplete: (submission: any) => void;
-  user: User | null;
 }
 
 const languageOptions = [
@@ -24,8 +23,8 @@ const languageOptions = [
 const CodingEnvironment: React.FC<CodingEnvironmentProps> = ({
   problemId,
   onSubmissionComplete,
-  user,
 }) => {
+  const { user } = useAppStore();
   const { darkMode } = useAppStore();
   const [code, setCode] = useState("");
   const [language, setLanguage] = useState("javascript");
@@ -50,11 +49,16 @@ const CodingEnvironment: React.FC<CodingEnvironmentProps> = ({
       setError("You must be logged in to submit code.");
       return;
     }
-    if (!user) {
-      setError("You must be logged in to submit code.");
+    if (!code.trim()) {
+      onSubmissionComplete({
+        status: "Failed",
+        error: "Empty code submission",
+        results: [],
+        suggestion: "Please write some code before submitting.",
+        detailedStatus: "Submission failed due to empty code.",
+      });
       return;
     }
-
     setSubmitting(true);
     setError(null);
     try {
@@ -64,9 +68,15 @@ const CodingEnvironment: React.FC<CodingEnvironmentProps> = ({
         code,
         language,
       });
+      if (response.data.error === "Language mismatch") {
+        onSubmissionComplete(response.data);
+        return;
+      }
+
       onSubmissionComplete(response.data);
     } catch (error: any) {
       console.error("Submission failed:", error);
+
       setError(
         error.response?.data?.error ||
           "An error occurred while submitting your code."
@@ -132,17 +142,6 @@ const CodingEnvironment: React.FC<CodingEnvironmentProps> = ({
           fontSize: 14,
         }}
       />
-      {error && (
-        <div
-          className={`mt-4 p-4 border rounded ${
-            isDarkMode
-              ? "bg-red-900 border-red-700 text-red-200"
-              : "bg-red-100 border-red-400 text-red-700"
-          }`}
-        >
-          {error}
-        </div>
-      )}
     </div>
   );
 };

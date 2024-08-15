@@ -6,7 +6,6 @@ import {
   Navigate,
 } from "react-router-dom";
 import Nav from "./components/Nav";
-import Home from "./pages/Home";
 import Problems from "./pages/Problems";
 import ProblemDetail from "./pages/ProblemDetail";
 import Login from "./pages/Login";
@@ -19,8 +18,8 @@ import CreateProblem from "./pages/CreateProblem";
 import useAppStore from "./store/useStore";
 
 const App: React.FC = () => {
-  const { user, checkAuth, darkMode } = useAppStore();
-
+  const { checkAuth } = useAppStore();
+  const { user, darkMode } = useAppStore();
   useEffect(() => {
     checkAuth();
   }, [checkAuth]);

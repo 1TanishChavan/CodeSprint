@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import api from "../api";
-import useAuthStore from "../store/useStore";
+import useAppStore from "../store/useStore";
 import { TestCase, Problem } from "../types";
 // interface TestCase {
 //   id: number;
@@ -19,7 +19,7 @@ import { TestCase, Problem } from "../types";
 // }
 
 const ProblemEdit: React.FC = () => {
-  const { user } = useAuthStore();
+  const { user } = useAppStore();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [problem, setProblem] = useState<Problem | null>(null);
@@ -46,7 +46,7 @@ const ProblemEdit: React.FC = () => {
   useEffect(() => {
     const fetchProblem = async () => {
       try {
-        const response = await api.get<Problem>(`/problems/${id}`);
+        const response = await api.get<Problem>(`/problems/edit/${id}`);
         setProblem(response.data);
         setTitle(response.data.title);
         setDescription(response.data.description);

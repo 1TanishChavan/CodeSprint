@@ -2,7 +2,7 @@ import React from "react";
 import useAppStore from "../store/useStore";
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: "primary" | "secondary" | "danger";
+  variant?: "primary" | "secondary" | "danger" | "warning";
 }
 
 const Button: React.FC<ButtonProps> = ({
@@ -27,6 +27,12 @@ const Button: React.FC<ButtonProps> = ({
           darkMode
             ? "bg-gray-600 hover:bg-gray-700"
             : "bg-gray-500 hover:bg-gray-600"
+        }`;
+      case "warning":
+        return `${baseClass} ${
+          darkMode
+            ? "bg-teal-600 hover:bg-teal-700"
+            : "bg-teal-500 hover:bg-teal-600"
         }`;
       case "danger":
         return `${baseClass} ${

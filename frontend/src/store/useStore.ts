@@ -1,14 +1,14 @@
-import create from 'zustand';
+import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import api, { setAuthToken } from '../api';
-import { AppState, User } from '../types';
+import { setAuthToken } from '../api';
+import { AppState } from '../types';
 
 const useAppStore = create<AppState>()(
     persist(
         (set, get) => ({
             user: null,
             token: null,
-            darkMode: false,
+            darkMode: true,
             setUser: (user) => set({ user }),
             setToken: (token) => set({ token }),
             login: (user, token) => {
@@ -21,26 +21,21 @@ const useAppStore = create<AppState>()(
                 setAuthToken('');
                 localStorage.removeItem('token');
             },
-            // checkAuth: async () => {
-            //     const token = get().token || localStorage.getItem('token');
-            //     if (token) {
-            //         try {
-            //             setAuthToken(token);
-            //             const response = await api.get<User>('/auth/me');
-            //             set({ user: response.data, token });
-            //         } catch (error) {
-            //             console.error('Error fetching user data:', error);
-            //             get().logout();
-            //         }
-            //     }
-            // },
             checkAuth: async () => {
                 const token = localStorage.getItem('token');
                 if (token) {
                     try {
                         setAuthToken(token);
-                        const response = await api.get<User>('/auth/me');
-                        set({ user: response.data, token });
+                        // const response = await api.get<User>('/auth/me');
+                        // set({ user: response.data, token });
+                        // get().setUser(response.data);
+                        // @ts-ignore
+                        // set({ user: response.data.user })
+                        // console.log(response.data);
+                        // console.log(localStorage.getItem('user'));
+                        // useAppStore.setState({ user: response.data, token });
+                        // set({ user: response.data });
+                        // console.log('Updated user:', get().user);
                     } catch (error) {
                         console.error('Error fetching user data:', error);
                         get().logout();

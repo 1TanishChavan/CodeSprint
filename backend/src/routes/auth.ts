@@ -1,5 +1,5 @@
 import express from 'express';
-import { createClient } from '@supabase/supabase-js';
+// import { createClient } from '@supabase/supabase-js';
 import { db } from '../db';
 import { users } from '../models/schema';
 import { eq } from 'drizzle-orm';
@@ -10,7 +10,7 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 const router = express.Router();
-const supabase = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_KEY!);
+// const supabase = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_KEY!);
 
 const generateToken = (userId: number, role: string) => {
     return jwt.sign({ userId, role }, process.env.JWT_SECRET!, { expiresIn: '1d' });
@@ -29,7 +29,7 @@ router.post('/register', async (req, res) => {
         }).returning();
 
         const token = generateToken(newUser.id, newUser.role);
-        res.status(201).json({ message: 'User registered successfully', user: newUser, token });
+        res.status(201).json({ message: 'User registered successfully', user: { name: newUser.name, email: newUser.email, role: newUser.role, id: newUser.id }, token });
     } catch (error: any) {
         res.status(400).json({ error: error.message });
     }
@@ -50,7 +50,7 @@ router.post('/login', async (req, res) => {
         }
 
         const token = generateToken(user.id, user.role);
-        res.status(200).json({ message: 'Login successful', user, token });
+        res.status(200).json({ message: 'Login successful', user: { name: user.name, email: user.email, role: user.role, id: user.id }, token });
     } catch (error: any) {
         res.status(400).json({ error: error.message });
     }
@@ -64,7 +64,12 @@ router.get('/profile', async (req, res) => {
 
     try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET!) as { userId: number };
-        const [user] = await db.select().from(users).where(eq(users.id, decoded.userId));
+        const [user] = await db.select({
+            id: users.id,
+            name: users.name,
+            email: users.email,
+            role: users.role,
+        }).from(users).where(eq(users.id, decoded.userId));
         if (!user) {
             return res.status(404).json({ error: 'User not found' });
         }
@@ -90,6 +95,36 @@ router.put('/profile', async (req, res) => {
         res.json(updatedUser);
     } catch (error: any) {
         res.status(401).json({ error: 'Invalid token' });
+    }
+});
+
+router.get('/me', async (req, res) => {
+    const token = req.headers.authorization?.split(' ')[1];
+    if (!token) {
+        return res.status(401).json({ error: 'No token provided' });
+    }
+
+    try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET!) as { userId: number, role: string };
+        const [user] = await db.select({
+            id: users.id,
+            name: users.name,
+            email: users.email,
+            role: users.role,
+        }).from(users).where(eq(users.id, decoded.userId));
+
+        if (!user) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        res.json({
+            user: { name: user.name, email: user.email, role: user.role, id: user.id }// You might want to refresh the token here
+        });
+    } catch (error: any) {
+        if (error instanceof jwt.JsonWebTokenError) {
+            return res.status(401).json({ error: 'Invalid token' });
+        }
+        res.status(500).json({ error: 'Server error' });
     }
 });
 

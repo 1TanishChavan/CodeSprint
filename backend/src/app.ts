@@ -7,7 +7,6 @@ import authRoutes from './routes/auth';
 import problemRoutes from './routes/problems';
 import submissionRoutes from './routes/submissions';
 import adminRoutes from './routes/admin';
-import seed from './routes/seed';
 import userDashboardRoutes from './routes/userDashboard';
 dotenv.config();
 
@@ -28,7 +27,6 @@ app.use('/api/auth', authRoutes);
 app.use('/api/problems', problemRoutes);
 app.use('/api/submissions', submissionRoutes);
 app.use('/api/admin', adminRoutes);
-app.use('/api/seed', seed);
 app.use('/api/user', userDashboardRoutes);
 
 export default app;

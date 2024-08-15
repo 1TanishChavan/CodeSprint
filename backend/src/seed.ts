@@ -123,6 +123,9 @@ export async function seeding() {
         console.log('Migration and seeding completed.');
         return true
     } catch (err: any) {
+        console.error(err);
         return false
     }
 }
+
+seeding()
