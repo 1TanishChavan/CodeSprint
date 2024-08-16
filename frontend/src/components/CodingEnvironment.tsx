@@ -30,19 +30,18 @@ const CodingEnvironment: React.FC<CodingEnvironmentProps> = ({
   const [language, setLanguage] = useState("javascript");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [isDarkMode, setIsDarkMode] = useState(false);
 
-  useEffect(() => {
-    const darkModeMediaQuery = window.matchMedia(
-      "(prefers-color-scheme: dark)"
-    );
-    setIsDarkMode(darkModeMediaQuery.matches);
+  // useEffect(() => {
+  //   const darkModeMediaQuery = window.matchMedia(
+  //     "(prefers-color-scheme: dark)"
+  //   );
+  //   setIsDarkMode(darkModeMediaQuery.matches);
 
-    const handleChange = (e: MediaQueryListEvent) => setIsDarkMode(e.matches);
-    darkModeMediaQuery.addEventListener("change", handleChange);
+  //   const handleChange = (e: MediaQueryListEvent) => setIsDarkMode(e.matches);
+  //   darkModeMediaQuery.addEventListener("change", handleChange);
 
-    return () => darkModeMediaQuery.removeEventListener("change", handleChange);
-  }, []);
+  //   return () => darkModeMediaQuery.removeEventListener("change", handleChange);
+  // }, []);
 
   const handleSubmit = async () => {
     if (!user) {
@@ -51,9 +50,8 @@ const CodingEnvironment: React.FC<CodingEnvironmentProps> = ({
     }
     if (!code.trim()) {
       onSubmissionComplete({
-        status: "Failed",
-        error: "Empty code submission",
-        results: [],
+        status: "Empty Code",
+        empty: "Empty code Submitted",
         suggestion: "Please write some code before submitting.",
         detailedStatus: "Submission failed due to empty code.",
       });
@@ -89,15 +87,15 @@ const CodingEnvironment: React.FC<CodingEnvironmentProps> = ({
   return (
     <div
       className={`mt-8 ${
-        isDarkMode ? "bg-gray-900 text-white" : "bg-white text-black"
+        darkMode ? "bg-gray-900 text-white" : "bg-white text-black"
       }`}
     >
-      <div className="flex justify-between mb-4">
+      <div className="flex flex-col sm:flex-row justify-between mb-4">
         <select
           value={language}
           onChange={(e) => setLanguage(e.target.value)}
-          className={`p-2 border rounded ${
-            isDarkMode
+          className={`p-2 border rounded mb-2 sm:mb-0 sm:mr-2 ${
+            darkMode
               ? "bg-gray-700 text-white border-gray-600"
               : "bg-white text-black border-gray-300"
           }`}
@@ -112,7 +110,7 @@ const CodingEnvironment: React.FC<CodingEnvironmentProps> = ({
           onClick={handleSubmit}
           disabled={submitting || !user}
           className={`px-4 py-2 rounded transition duration-300 ${
-            isDarkMode
+            darkMode
               ? "bg-green-700 text-white hover:bg-green-800 disabled:opacity-50"
               : "bg-green-500 text-white hover:bg-green-600 disabled:opacity-50"
           }`}
@@ -120,16 +118,6 @@ const CodingEnvironment: React.FC<CodingEnvironmentProps> = ({
           {submitting ? "Submitting..." : "Submit"}
         </button>
       </div>
-      {/* <Editor
-        height="400px"
-        language={language}
-        value={code}
-        onChange={(value) => setCode(value || "")}
-        theme={isDarkMode ? "vs-dark" : "light"}
-        options={{
-          minimap: { enabled: false },
-        }}
-      /> */}
       <Editor
         height="400px"
         language={language}

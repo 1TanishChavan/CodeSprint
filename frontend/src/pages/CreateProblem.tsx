@@ -64,7 +64,7 @@ const CreateProblem: React.FC = () => {
     <div className="container mx-auto px-4 py-8">
       <h1 className="text-3xl font-bold mb-6">Create New Problem</h1>
       {error && <ErrorMessage message={error} />}
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit} className="space-y-6 max-w-3xl mx-auto">
         <InputBox
           label="Title"
           id="title"

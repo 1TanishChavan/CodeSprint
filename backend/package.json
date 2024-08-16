@@ -4,9 +4,10 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "ts-node src/server.ts",
-    "dev": "tsnd --respawn -r tsconfig-paths/register --pretty --transpile-only ./src/server.ts",
     "build": "tsc && tsc-alias",
+    "start": "node src/server.jsonwebtoken",
+    "dev:start": "ts-node src/server.ts",
+    "dev": "tsnd --respawn -r tsconfig-paths/register --pretty --transpile-only ./src/server.ts",
     "db:introspect": "drizzle-kit introspect",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",

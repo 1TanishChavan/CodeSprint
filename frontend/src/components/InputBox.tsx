@@ -27,7 +27,7 @@ const InputBox: React.FC<InputBoxProps> = ({ label, id, ...props }) => {
             ${
               darkMode
                 ? "bg-gray-800 text-white border-transparent"
-                : "bg-white text-black border-gray-300"
+                : "bg-white text-black border"
             }
             ${
               isFocused
@@ -43,7 +43,7 @@ const InputBox: React.FC<InputBoxProps> = ({ label, id, ...props }) => {
         {darkMode && (
           <div
             className={`absolute inset-0 rounded-md pointer-events-none ${
-              isFocused ? "border-2 border-blue-500" : "border border-gray-600"
+              isFocused ? "border-2 border-blue-500" : "border border-gray-900"
             }`}
           ></div>
         )}

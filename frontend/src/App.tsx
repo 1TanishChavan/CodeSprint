@@ -51,7 +51,7 @@ const App: React.FC = () => {
       <div className={`min-h-screen ${darkMode ? "dark" : ""}`}>
         <div className="bg-white dark:bg-gray-900 text-gray-900 dark:text-white min-h-screen">
           <Nav />
-          <div className="container mx-auto px-4 py-8">
+          <div className="container mx-auto px-4 py-8 max-w-7xl sm:px-6 lg:px-8">
             <Routes>
               <Route path="/" element={<Problems />} />
               <Route path="/problems" element={<Problems />} />

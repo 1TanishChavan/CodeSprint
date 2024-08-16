@@ -11,6 +11,10 @@ module.exports = {
           500: "#3b82f6", // Focus ring color
         },
       },
+      screens: {
+        xs: "480px",
+        // Add other custom breakpoints if needed
+      },
     },
   },
   plugins: [],

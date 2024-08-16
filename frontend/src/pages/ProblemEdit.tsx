@@ -2,24 +2,23 @@ import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import api from "../api";
 import useAppStore from "../store/useStore";
-import { TestCase, Problem } from "../types";
-// interface TestCase {
-//   id: number;
-//   input: string;
-//   output: string;
-//   isPublic: boolean;
-// }
-
-// interface Problem {
-//   id: number;
-//   title: string;
-//   description: string;
-//   difficulty: string;
-//   testCases: TestCase[];
-// }
-
+// import { Problem } from "../types";
+interface TestCase {
+  id: number;
+  input: string;
+  output: string;
+  isPublic: boolean;
+  status?: "unchanged" | "modified" | "added" | "deleted";
+}
+interface Problem {
+  id: number;
+  title: string;
+  description: string;
+  difficulty: "easy" | "medium" | "hard";
+  testCases: TestCase[];
+}
 const ProblemEdit: React.FC = () => {
-  const { user } = useAppStore();
+  const { darkMode } = useAppStore();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [problem, setProblem] = useState<Problem | null>(null);
@@ -29,20 +28,7 @@ const ProblemEdit: React.FC = () => {
   const [testCases, setTestCases] = useState<TestCase[]>([]);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
-  const [isDarkMode, setIsDarkMode] = useState(false);
-
-  useEffect(() => {
-    const darkModeMediaQuery = window.matchMedia(
-      "(prefers-color-scheme: dark)"
-    );
-    setIsDarkMode(darkModeMediaQuery.matches);
-
-    const handleChange = (e: MediaQueryListEvent) => setIsDarkMode(e.matches);
-    darkModeMediaQuery.addEventListener("change", handleChange);
-
-    return () => darkModeMediaQuery.removeEventListener("change", handleChange);
-  }, []);
-
+  const [deletedTestCases, setDeletedTestCases] = useState<number[]>();
   useEffect(() => {
     const fetchProblem = async () => {
       try {
@@ -63,6 +49,7 @@ const ProblemEdit: React.FC = () => {
     fetchProblem();
   }, [id]);
 
+  // Update handleTestCaseChange
   const handleTestCaseChange = (
     index: number,
     field: keyof TestCase,
@@ -70,24 +57,46 @@ const ProblemEdit: React.FC = () => {
   ) => {
     setTestCases((prevTestCases) =>
       prevTestCases.map((testCase, i) =>
-        i === index ? { ...testCase, [field]: value } : testCase
+        i === index
+          ? {
+              ...testCase,
+              [field]: value,
+              status: testCase.status === "added" ? "added" : "modified",
+            }
+          : testCase
       )
     );
   };
 
+  // Update addTestCase
   const addTestCase = () => {
     setTestCases((prevTestCases) => [
       ...prevTestCases,
-      { id: Date.now(), input: "", output: "", isPublic: false },
+      {
+        id: Date.now(),
+        input: "",
+        output: "",
+        isPublic: false,
+        status: "added",
+      }, // Using Date.now() as a temporary ID
     ]);
   };
 
+  // Update removeTestCase
   const removeTestCase = (index: number) => {
-    setTestCases((prevTestCases) =>
-      prevTestCases.filter((_, i) => i !== index)
-    );
+    setTestCases((prevTestCases) => {
+      const testCase = prevTestCases[index];
+      if (testCase.status === "added") {
+        return prevTestCases.filter((_, i) => i !== index);
+      } else {
+        // @ts-ignore
+        setDeletedTestCases((prev) => [...prev, testCase.id]);
+        return prevTestCases.filter((_, i) => i !== index);
+      }
+    });
   };
 
+  // Update handleSubmit
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
@@ -97,7 +106,8 @@ const ProblemEdit: React.FC = () => {
         title,
         description,
         difficulty,
-        testCases,
+        testCases: testCases.filter((tc) => tc.status !== "unchanged"),
+        deletedTestCases,
       });
       navigate("/problems");
     } catch (error: any) {
@@ -107,13 +117,13 @@ const ProblemEdit: React.FC = () => {
 
   if (loading) {
     return (
-      <div className={isDarkMode ? "text-white" : "text-black"}>Loading...</div>
+      <div className={darkMode ? "text-white" : "text-black"}>Loading...</div>
     );
   }
 
   if (error) {
     return (
-      <div className={isDarkMode ? "text-red-300" : "text-red-600"}>
+      <div className={darkMode ? "text-red-300" : "text-red-600"}>
         Error: {error}
       </div>
     );
@@ -121,20 +131,20 @@ const ProblemEdit: React.FC = () => {
 
   if (!problem) {
     return (
-      <div className={isDarkMode ? "text-white" : "text-black"}>
+      <div className={darkMode ? "text-white" : "text-black"}>
         Problem not found
       </div>
     );
   }
 
   const inputClassName = `w-full p-2 border rounded ${
-    isDarkMode
+    darkMode
       ? "bg-gray-700 text-white border-gray-600 focus:border-blue-500 focus:ring-blue-500"
       : "bg-white text-black border-gray-300 focus:border-blue-500 focus:ring-blue-500"
   } appearance-none focus:outline-none focus:ring-2`;
 
   const buttonClassName = `px-4 py-2 rounded ${
-    isDarkMode
+    darkMode
       ? "bg-blue-600 text-white hover:bg-blue-700"
       : "bg-blue-500 text-white hover:bg-blue-600"
   }`;
@@ -142,11 +152,11 @@ const ProblemEdit: React.FC = () => {
   return (
     <div
       className={`container mx-auto px-4 py-8 transition-colors duration-200 ${
-        isDarkMode ? "bg-gray-900 text-white" : "bg-white text-black"
+        darkMode ? "bg-gray-900 text-white" : "bg-white text-black"
       }`}
     >
       <h1 className="text-3xl font-bold mb-6">Edit Problem</h1>
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit} className="space-y-6 max-w-3xl mx-auto">
         <div className="mb-4">
           <label htmlFor="title" className="block mb-2">
             Title
@@ -197,7 +207,7 @@ const ProblemEdit: React.FC = () => {
             <div
               key={testCase.id}
               className={`mb-4 p-4 border rounded ${
-                isDarkMode ? "border-gray-600" : "border-gray-300"
+                darkMode ? "border-gray-600" : "border-gray-300"
               }`}
             >
               <div className="mb-2">
@@ -247,7 +257,7 @@ const ProblemEdit: React.FC = () => {
                 type="button"
                 onClick={() => removeTestCase(index)}
                 className={`px-2 py-1 rounded ${
-                  isDarkMode
+                  darkMode
                     ? "bg-red-700 text-white hover:bg-red-800"
                     : "bg-red-500 text-white hover:bg-red-600"
                 }`}
@@ -267,7 +277,7 @@ const ProblemEdit: React.FC = () => {
         <button
           type="submit"
           className={`${buttonClassName} ${
-            isDarkMode
+            darkMode
               ? "bg-green-700 hover:bg-green-800"
               : "bg-green-500 hover:bg-green-600"
           }`}

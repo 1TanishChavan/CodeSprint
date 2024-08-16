@@ -1,7 +1,7 @@
 import express from 'express';
 import { db } from '../db';
 import { problems, testCases } from '../models/schema';
-import { eq, and, sql } from 'drizzle-orm';
+import { eq, and, sql, inArray } from 'drizzle-orm';
 import { authenticateToken, authorizeRole } from '../middleware/auth';
 
 const router = express.Router();
@@ -92,19 +92,56 @@ router.post('/', authenticateToken, authorizeRole(['creator', 'admin']), async (
 // Update a problem (only for creators and admins)
 router.put('/:id', authenticateToken, authorizeRole(['creator', 'admin']), async (req, res) => {
     const { id } = req.params;
-    const { title, description, difficulty } = req.body;
+    const { title, description, difficulty, testCases, deletedTestCases } = req.body;
 
     try {
-        const [updatedProblem] = await db.update(problems)
-            .set({ title, description, difficulty, updatedAt: new Date() })
-            .where(eq(problems.id, parseInt(id)))
-            .returning();
+        await db.transaction(async (trx) => {
+            // Update problem
+            const [updatedProblem] = await trx.update(problems)
+                .set({
+                    title,
+                    description,
+                    difficulty: difficulty || null,  // Allow null for difficulty
+                    updatedAt: new Date()
+                })
+                .where(eq(problems.id, parseInt(id)))
+                .returning();
 
-        if (!updatedProblem) {
-            return res.status(404).json({ message: 'Problem not found' });
-        }
+            if (!updatedProblem) {
+                throw new Error('Problem not found');
+            }
 
-        res.json({ message: 'Problem updated successfully', problem: updatedProblem });
+            // Handle test cases
+            for (const testCase of testCases) {
+                if (testCase.status === 'added') {
+                    await trx.insert(testCases).values({
+                        problemId: updatedProblem.id,
+                        input: testCase.input,
+                        output: testCase.output,
+                        isPublic: testCase.isPublic,
+                    });
+                } else if (testCase.status === 'modified') {
+                    await trx.update(testCases)
+                        .set({
+                            input: testCase.input,
+                            output: testCase.output,
+                            isPublic: testCase.isPublic,
+                        })
+                        .where(eq(testCases.id, testCase.id));
+                }
+            }
+
+            // Delete removed test cases
+            if (deletedTestCases && deletedTestCases.length > 0) {
+                await trx.delete(testCases)
+                    .where(and(
+                        eq(testCases.problemId, updatedProblem.id),
+                        inArray(testCases.id, deletedTestCases)
+                    ));
+            }
+        });
+
+        res.json({ message: 'Problem updated successfully' });
     } catch (error: any) {
         res.status(500).json({ error: 'Failed to update problem' });
     }

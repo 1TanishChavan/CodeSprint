@@ -31,3 +31,9 @@ select {
   transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out,
     border-color 0.2s ease-in-out;
 }
+
+@responsive {
+  .text-responsive {
+    font-size: calc(14px + (18 - 14) * ((100vw - 300px) / (1600 - 300)));
+  }
+}

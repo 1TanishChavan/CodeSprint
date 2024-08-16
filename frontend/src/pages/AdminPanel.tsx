@@ -4,13 +4,11 @@ import useAppStore from "../store/useStore";
 import { User } from "../types";
 
 const AdminPanel: React.FC = () => {
-  const { user } = useAppStore();
   const [users, setUsers] = useState<User[]>([]);
 
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        const token = localStorage.getItem("token");
         const response = await api.get("/admin/users");
         setUsers(response.data);
       } catch (error) {
@@ -23,7 +21,6 @@ const AdminPanel: React.FC = () => {
 
   const handleRoleChange = async (userId: number, newRole: string) => {
     try {
-      const token = localStorage.getItem("token");
       await api.put(`/admin/users/${userId}/role`, { role: newRole });
       setUsers(
         // @ts-ignore

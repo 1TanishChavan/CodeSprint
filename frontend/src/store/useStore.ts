@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { setAuthToken } from '../api';
-import { AppState } from '../types';
+import { AppState, User } from '../types';
 
 const useAppStore = create<AppState>()(
     persist(

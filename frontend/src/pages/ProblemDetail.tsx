@@ -34,6 +34,12 @@ const ProblemDetail: React.FC = () => {
   } | null>(null);
   const [languageMismatch, setLanguageMismatch] =
     useState<LanguageMismatch | null>(null);
+  const [emptyCode, setEmptyCode] = useState<{
+    status: string;
+    empty: string;
+    suggestion: string;
+    detailedStatus: string;
+  } | null>(null);
   const [showResultsModal, setShowResultsModal] = useState(false);
   useEffect(() => {
     const fetchProblemAndSubmissions = async () => {
@@ -56,26 +62,33 @@ const ProblemDetail: React.FC = () => {
     fetchProblemAndSubmissions();
   }, [id, user]);
 
-  // const handleSubmissionComplete = (submission: { status: string, results: SubmissionResult[] }) => {
-  //   setLatestSubmission(submission);
-  //   // @ts-ignore
-  //   setSubmissions(prev => [{
-  //     id: Date.now(),
-  //     status: submission.status,
-  //     language: 'Unknown',
-  //     submittedAt: new Date().toISOString()
-  //   }, ...prev]);
-  // };
-
   const handleSubmissionComplete = (
     submission:
       | { status: string; results: SubmissionResult[] }
       | { error: string; specifiedLanguage: string; actualLanguage: string }
+      | {
+          status: string;
+          empty: string;
+          suggestion: string;
+          detailedStatus: string;
+        }
   ) => {
     if ("error" in submission && submission.error === "Language mismatch") {
       setLanguageMismatch({
         specifiedLanguage: submission.specifiedLanguage,
         actualLanguage: submission.actualLanguage,
+      });
+      setLatestSubmission(null);
+      setShowResultsModal(true);
+    } else if (
+      "empty" in submission &&
+      submission.empty === "Empty code submission"
+    ) {
+      setEmptyCode({
+        status: submission.status,
+        empty: submission.empty,
+        suggestion: submission.suggestion,
+        detailedStatus: submission.detailedStatus,
       });
       setLatestSubmission(null);
       setShowResultsModal(true);
@@ -181,7 +194,24 @@ const ProblemDetail: React.FC = () => {
               Please ensure you're using the correct language for your
               submission.
             </p>
-          </div>{" "}
+          </div>
+        </Modal>
+      )}
+      {emptyCode && (
+        <Modal
+          isOpen={showResultsModal}
+          onClose={() => setShowResultsModal(false)}
+        >
+          <h2 className="text-2xl font-semibold mb-4">{emptyCode.empty}</h2>
+          <p className={`text-lg font-semibold ${"Rejected text-red-500"}`} />
+          <div className="mt-8 p-4 bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700">
+            <p className={`text-lg font-semibold text-red-500`}>
+              Status: {emptyCode.status}
+            </p>
+            <p className="mt-2">{emptyCode.detailedStatus}</p>
+            <h3 className="text-xl font-semibold mt-4 mb-2">Suggestion:</h3>
+            <p>{emptyCode.suggestion}</p>
+          </div>
         </Modal>
       )}
 
