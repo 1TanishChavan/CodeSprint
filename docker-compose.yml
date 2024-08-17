@@ -1,0 +1,55 @@
+version: "3.8"
+
+services:
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "5000:5000"
+    depends_on:
+      - db
+    environment:
+      - PORT=5000
+      - DATABASE_URL=postgresql://codesprint_user:codesprint_password@db:5432/codesprint
+      - DIRECT_URL=postgresql://codesprint_user:codesprint_password@db:5432/codesprint
+      - JWT_SECRET=${JWT_SECRET}
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+
+  db:
+    image: postgres:14
+    environment:
+      POSTGRES_USER: codesprint_user
+      POSTGRES_PASSWORD: codesprint_password
+      POSTGRES_DB: codesprint
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U codesprint_user -d codesprint"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  db-setup:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    command: sh -c "npm run db:setup"
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      - DATABASE_URL=postgresql://codesprint_user:codesprint_password@db:5432/codesprint
+      - DIRECT_URL=postgresql://codesprint_user:codesprint_password@db:5432/codesprint
+
+volumes:
+  postgres_data:

@@ -4,13 +4,18 @@ import { Pool } from 'pg';
 import * as schema from './models/schema';
 import { users, problems, testCases, submissions } from './models/schema';
 import { db } from './db';
+import bcrypt from 'bcrypt';
+
 
 async function seed() {
+    const password = "1234"
+    const hashedPassword = await bcrypt.hash(password, 10);
+
     // Seed users (unchanged)
     const createdUsers = await db.insert(users).values([
-        { name: 'John Doe', email: 'john@example.com', password: 'hashed_password', role: 'solver' },
-        { name: 'Jane Smith', email: 'jane@example.com', password: 'hashed_password', role: 'creator' },
-        { name: 'Admin User', email: 'admin@example.com', password: 'hashed_password', role: 'admin' },
+        { name: 'John Doe', email: 'john@gmail.com', password: hashedPassword, role: 'solver' },
+        { name: 'Jane Smith', email: 'jane@gmail.com', password: hashedPassword, role: 'creator' },
+        { name: 'Admin User', email: 'admin@gmail.com', password: hashedPassword, role: 'admin' },
     ]).returning();
 
     // Seed problems (unchanged)

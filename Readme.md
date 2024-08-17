@@ -1,10 +1,48 @@
 # Setup:
 
+## Setup with Docker :
+
+<details>
+
+<summary>Setup with Docker</summary>
+
+- Put your Gemini API and JWT key
+
+- For 1st time setup run below command
+
+```
+docker-compose up --build
+```
+
+- After that for running again run
+
+```
+docker-compose run --rm db-setup
+```
+
+- User login email and password :
+  - Admin :
+    - Email : "admin@gmail.com"
+    - Password : "1234"
+  - Creator :
+    - Email : "jane@gmail.com"
+    - Password : "1234"
+  - Solver :
+    - Email : "john@gmail.com"
+    - Password : "1234"
+
+</details>
+
+## Setup without Docker :
+
+<details>
+<summary>Setup without Docker</summary>
+
 ### Setup Backend:
 
 ```
 cd backend
-Run npm i
+npm i
 ```
 
 ### Setup Database:
@@ -23,7 +61,7 @@ db:setup
 
 ```
 cd frontend
-Run npm i
+npm i
 ```
 
 # Run Application
@@ -41,3 +79,5 @@ terminal 2
 cd backend
 npm run dev
 ```
+
+</details>
