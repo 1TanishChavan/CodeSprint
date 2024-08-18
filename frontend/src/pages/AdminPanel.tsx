@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import api from "../api";
-import useAppStore from "../store/useStore";
 import { User } from "../types";
 
 const AdminPanel: React.FC = () => {

@@ -1,7 +1,4 @@
-import { drizzle } from 'drizzle-orm/node-postgres';
 import { migrate } from 'drizzle-orm/node-postgres/migrator';
-import { Pool } from 'pg';
-import * as schema from './models/schema';
 import { users, problems, testCases, submissions } from './models/schema';
 import { db } from './db';
 import bcrypt from 'bcrypt';
@@ -116,7 +113,6 @@ async function seed() {
         { userId: createdUsers[0].id, problemId: createdProblems[4].id, code: 'fn binary_search(arr: &[i32], target: i32) -> Option<usize> { /* ... */ }', language: 'rust', status: 'In Progress' },
     ]);
 
-    console.log('Seed data inserted successfully');
 }
 
 export async function seeding() {

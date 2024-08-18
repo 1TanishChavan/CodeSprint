@@ -1,8 +1,7 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import Editor from "@monaco-editor/react";
 import api from "../api";
 import useAppStore from "../store/useStore";
-import { User } from "../types";
 
 interface CodingEnvironmentProps {
   problemId: number;
@@ -31,18 +30,6 @@ const CodingEnvironment: React.FC<CodingEnvironmentProps> = ({
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // useEffect(() => {
-  //   const darkModeMediaQuery = window.matchMedia(
-  //     "(prefers-color-scheme: dark)"
-  //   );
-  //   setIsDarkMode(darkModeMediaQuery.matches);
-
-  //   const handleChange = (e: MediaQueryListEvent) => setIsDarkMode(e.matches);
-  //   darkModeMediaQuery.addEventListener("change", handleChange);
-
-  //   return () => darkModeMediaQuery.removeEventListener("change", handleChange);
-  // }, []);
-
   const handleSubmit = async () => {
     if (!user) {
       setError("You must be logged in to submit code.");
@@ -51,7 +38,7 @@ const CodingEnvironment: React.FC<CodingEnvironmentProps> = ({
     if (!code.trim()) {
       onSubmissionComplete({
         status: "Empty Code",
-        empty: "Empty code Submitted",
+        empty: "Empty Code Submitted",
         suggestion: "Please write some code before submitting.",
         detailedStatus: "Submission failed due to empty code.",
       });

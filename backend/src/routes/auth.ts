@@ -1,5 +1,4 @@
 import express from 'express';
-// import { createClient } from '@supabase/supabase-js';
 import { db } from '../db';
 import { users } from '../models/schema';
 import { eq } from 'drizzle-orm';
@@ -10,7 +9,6 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 const router = express.Router();
-// const supabase = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_KEY!);
 
 const generateToken = (userId: number, role: string) => {
     return jwt.sign({ userId, role }, process.env.JWT_SECRET!, { expiresIn: '1d' });

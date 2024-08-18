@@ -6,6 +6,7 @@ import InputBox from "../components/InputBox";
 import Button from "../components/Button";
 import ErrorMessage from "../components/ErrorMessage";
 import { User } from "../types";
+
 const Register: React.FC = () => {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");

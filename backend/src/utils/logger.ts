@@ -1,4 +1,6 @@
+import dotenv from 'dotenv';
 import winston from 'winston';
+dotenv.config();
 
 export const promptLogger = winston.createLogger({
     level: 'debug',

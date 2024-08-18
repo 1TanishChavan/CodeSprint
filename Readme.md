@@ -6,7 +6,7 @@
 
 <summary>Setup with Docker</summary>
 
-- Put your Gemini API and JWT key
+- Put your Gemini API and JWT key in "docker-compose.yml"
 
 - For 1st time setup run below command
 
@@ -17,7 +17,7 @@ docker-compose up --build
 - After that for running again run
 
 ```
-docker-compose run --rm db-setup
+docker-compose up db frontend backend
 ```
 
 - User login email and password :
@@ -49,7 +49,7 @@ npm i
 
 - postgres database
 
-* Create .env file in bankend folder like .env.sample
+* Create .env file in backend folder like .env.sample
 * Run this command
 
 ```

@@ -41,6 +41,7 @@ const ProblemDetail: React.FC = () => {
     detailedStatus: string;
   } | null>(null);
   const [showResultsModal, setShowResultsModal] = useState(false);
+
   useEffect(() => {
     const fetchProblemAndSubmissions = async () => {
       try {
@@ -78,11 +79,12 @@ const ProblemDetail: React.FC = () => {
         specifiedLanguage: submission.specifiedLanguage,
         actualLanguage: submission.actualLanguage,
       });
+      setEmptyCode(null);
       setLatestSubmission(null);
       setShowResultsModal(true);
     } else if (
       "empty" in submission &&
-      submission.empty === "Empty code submission"
+      submission.empty === "Empty Code Submitted"
     ) {
       setEmptyCode({
         status: submission.status,
@@ -90,9 +92,11 @@ const ProblemDetail: React.FC = () => {
         suggestion: submission.suggestion,
         detailedStatus: submission.detailedStatus,
       });
+      setLanguageMismatch(null);
       setLatestSubmission(null);
       setShowResultsModal(true);
     } else {
+      setEmptyCode(null);
       setLanguageMismatch(null);
       setLatestSubmission(
         submission as {

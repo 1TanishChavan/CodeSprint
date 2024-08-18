@@ -20,6 +20,7 @@ services:
       - db
     environment:
       - PORT=5000
+      - NODE_ENV=production
       - DATABASE_URL=postgresql://codesprint_user:codesprint_password@db:5432/codesprint
       - DIRECT_URL=postgresql://codesprint_user:codesprint_password@db:5432/codesprint
       - JWT_SECRET=${JWT_SECRET}

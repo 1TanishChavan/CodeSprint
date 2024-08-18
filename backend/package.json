@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "build": "tsc && tsc-alias",
-    "start": "node src/server",
+    "start": "node dist/server",
     "dev:start": "ts-node src/server.ts",
     "dev": "tsnd --respawn -r tsconfig-paths/register --pretty --transpile-only ./src/server.ts",
     "db:introspect": "drizzle-kit introspect",
